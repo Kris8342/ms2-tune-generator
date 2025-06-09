@@ -592,6 +592,9 @@ ${validationResults.suggestions.length > 0 ? validationResults.suggestions.map(s
     
     return doc;
 }
+function generateTuneDocumentation(tuneData,validationResults,calculatedParams){return`# Generated Tune Documentation\nGenerated: ${new Date().toLocaleString()}\n\nEngine: ${tuneData.displacement}ci ${tuneData.cylinders}-cylinder\nRequiredFuel: ${calculatedParams.requiredFuel}ms\nRev Limit: ${calculatedParams.hardRevLimit} RPM\n\nSAFETY: This is a baseline tune. Professional tuning recommended.\n`;}
+
+
 
 // Export the generator class
 window.MSQGenerator = MSQGenerator;
