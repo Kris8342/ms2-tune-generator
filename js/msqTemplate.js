@@ -174,12 +174,8 @@ class MSQGenerator {
         const params = {};
         
         // Core fuel calculations
-        params.requiredFuel = calculateRequiredFuel(
-            tuneData.displacement,
-            tuneData.cylinders,
-            componentSpecs.injector.size,
-            tuneData.fuelPressure
-        );
+     params.requiredFuel=calculateRequiredFuel(tuneData.displacement||306,tuneData.cylinders||8,(componentSpecs.injector?.size||tuneData.customInjectorSize||34),tuneData.fuelPressure||43.5);
+
         
         // Injector settings
         const injectorSettings = calculateInjectorSettings(componentSpecs.injector, tuneData.fuelPressure);
