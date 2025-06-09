@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🚀 MS2/Extra Tune Generator</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🚀 MS2/Extra Tune Generator</h1>
+            <p>Generate safe, calculated baseline tunes for your MegaSquirt setup</p>
+        </header>
+
+        <!-- Progress Bar -->
+        <div class="progress-container">
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+            <div class="step-labels">
+                <span class="step-label active" data-step="1">Setup</span>
+                <span class="step-label" data-step="2">Engine</span>
+                <span class="step-label" data-step="3">Fuel</span>
+                <span class="step-label" data-step="4">Ignition</span>
+                <span class="step-label" data-step="5">Sensors</span>
+                <span class="step-label" data-step="6">Generate</span>
+            </div>
+        </div>
+
+        <!-- Step 1: Setup Choice -->
+        <div class="form-step active" id="step1">
+            <h2>🎯 Choose Your Setup Method</h2>
+            <div class="setup-choice">
+                <div class="choice-card" onclick="selectSetupType('quick')">
+                    <h3>⚡ Quick Setup</h3>
+                    <p>I know my basic specs, generate a safe tune fast</p>
+                    <ul>
+                        <li>Basic engine specs</li>
+                        <li>Injector size</li>
+                        <li>Conservative timing</li>
+                        <li>Safe for immediate use</li>
+                    </ul>
+                </div>
+                <div class="choice-card" onclick="selectSetupType('detailed')">
+                    <h3>🔧 Detailed Setup</h3>
+                    <p>Specify all components for optimized tune</p>
+                    <ul>
+                        <li>Complete component database</li>
+                        <li>Auto-populated specs</li>
+                        <li>Optimized for your exact setup</li>
+                        <li>Professional-grade baselines</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 2: Engine Specifications -->
+        <div class="form-step" id="step2">
+            <h2>🏎️ Engine Specifications</h2>
+            
+            <!-- Known Combo Detection -->
+            <div class="input-section">
+                <label for="engineCombo">Popular Engine Combos:</label>
+                <select id="engineCombo" onchange="loadKnownCombo()">
+                    <option value="">Select if your combo is listed...</option>
+                    <option value="Ford_302_X303_34lb">Ford 5.0L + X-303 cam + 34lb injectors</option>
+                    <option value="Ford_302_stock_19lb">Ford 5.0L Stock + 19lb injectors</option>
+                    <option value="LS1_stock_24lb">LS1 Stock + 24lb injectors</option>
+                    <option value="LS1_cam_42lb">LS1 + Mild cam + 42lb injectors</option>
+                    <option value="SBC_350_mild_34lb">SBC 350 + Mild cam + 34lb injectors</option>
+                    <option value="SBC_350_Comp280_42lb">SBC 350 + Comp 280H + 42lb injectors</option>
+                    <option value="custom">Custom setup</option>
+                </select>
+                <div id="knownComboInfo" class="combo-info" style="display:none;">
+                    <p>✅ We have proven tables for this combo!</p>
+                </div>
+            </div>
+
+            <div id="customEngineSpecs">
+                <div class="input-row">
+                    <div class="input-group">
+                        <label for="displacement">Displacement:</label>
+                        <input type="number" id="displacement" placeholder="350" min="100" max="1000">
+                        <select id="displacementUnit">
+                            <option value="ci">Cubic Inches</option>
+                            <option value="cc">CC</option>
+                            <option value="liters">Liters</option>
+                        </select>
+                    </div>
+                    <div class="input-group">
+                        <label for="cylinders">Cylinders:</label>
+                        <select id="cylinders">
+                            <option value="4">4 Cylinder</option>
+                            <option value="6">6 Cylinder</option>
+                            <option value="8" selected>8 Cylinder</option>
+                            <option value="10">10 Cylinder</option>
+                            <option value="12">12 Cylinder</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="input-row">
+                    <div class="input-group">
+                        <label for="compression">Compression Ratio:</label>
+                        <input type="number" id="compression" step="0.1" placeholder="9.5" min="7" max="15">
+                        <div class="unknown-option">
+                            <input type="checkbox" id="compressionUnknown" onchange="toggleUnknown('compression')">
+                            <label for="compressionUnknown">Don't know</label>
+                        </div>
+                    </div>
+                    <div class="input-group">
+                        <label for="engineFamily">Engine Family:</label>
+                        <select id="engineFamily">
+                            <option value="Ford_302">Ford 302/5.0L</option>
+                            <option value="Ford_351">Ford 351W</option>
+                            <option value="GM_LS1">GM LS1/LS6</option>
+                            <option value="GM_LT1">GM LT1</option>
+                            <option value="Chevy_350">Chevy 350 SBC</option>
+                            <option value="Chevy_BBC">Chevy Big Block</option>
+                            <option value="Mopar_318">Mopar 318/340/360</option>
+                            <option value="Mopar_440">Mopar 440/383</option>
+                            <option value="other">Other/Custom</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Detailed Mode Only -->
+                <div id="detailedEngineSpecs" style="display:none;">
+                    <h3>🔧 Engine Internals</h3>
+                    <div class="input-row">
+                        <div class="input-group">
+                            <label for="cylinderHeads">Cylinder Heads:</label>
+                            <select id="cylinderHeads">
+                                <option value="stock">Stock heads</option>
+                                <option value="ported_stock">Ported stock heads</option>
+                                <option value="aluminum_aftermarket">Aluminum aftermarket</option>
+                                <option value="iron_aftermarket">Iron aftermarket</option>
+                                <option value="unknown">Don't know/Unsure</option>
+                            </select>
+                        </div>
+                        <div class="input-group">
+                            <label for="intakeManifold">Intake Manifold:</label>
+                            <select id="intakeManifold">
+                                <option value="stock">Stock intake manifold</option>
+                                <option value="dual_plane">Dual plane aftermarket</option>
+                                <option value="single_plane">Single plane aftermarket</option>
+                                <option value="tunnel_ram">Tunnel ram</option>
+                                <option value="unknown">Don't know/Unsure</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="input-group">
+                        <label for="camProfile">Camshaft:</label>
+                        <select id="camProfile" onchange="toggleCustomCam()">
+                            <option value="stock">Stock camshaft</option>
+                            <option value="mild_rv">Mild RV cam (under 210°)</option>
+                            <option value="mild_performance">Mild performance (210-220°)</option>
+                            <option value="performance">Performance (220-240°)</option>
+                            <option value="race">Race cam (over 240°)</option>
+                            <option value="custom">I know exact specs</option>
+                            <option value="unknown">Don't know specs</option>
+                        </select>
+                    </div>
+
+                    <div id="customCamSpecs" style="display:none;">
+                        <div class="input-row">
+                            <div class="input-group">
+                                <label for="camDuration">Duration @ 0.050":</label>
+                                <input type="number" id="camDuration" placeholder="220" min="180" max="300">
+                                <span>degrees</span>
+                            </div>
+                            <div class="input-group">
+                                <label for="camLift">Lift:</label>
+                                <input type="number" id="camLift" step="0.001" placeholder="0.500" min="0.300" max="0.800">
+                                <span>inches</span>
+                            </div>
+                            <div class="input-group">
+                                <label for="camLSA">LSA:</label>
+                                <input type="number" id="camLSA" placeholder="112" min="105" max="120">
+                                <span>degrees</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 3: Fuel System -->
+        <div class="form-step" id="step3">
+            <h2>⛽ Fuel System</h2>
+            
+            <div class="input-section">
+                <h3>Fuel Injectors</h3>
+                <div class="input-group">
+                    <label for="injectorModel">Injector Model:</label>
+                    <select id="injectorModel" onchange="loadInjectorSpecs()">
+                        <option value="">Select your injectors...</option>
+                        <option value="Ford_19lb_Yellow">Ford 19lb Yellow Tops</option>
+                        <option value="Ford_24lb_Green">Ford 24lb Green Tops (Explorer)</option>
+                        <option value="Ford_30lb_Blue">Ford 30lb Blue Tops</option>
+                        <option value="Bosch_42lb_Green">Bosch 42lb Green Giants</option>
+                        <option value="Delphi_60lb_Multec">Delphi 60lb Multec 2</option>
+                        <option value="Siemens_80lb">Siemens 80lb</option>
+                        <option value="custom">Custom/Other size</option>
+                        <option value="unknown">Don't know exactly</option>
+                    </select>
+                </div>
+
+                <div id="customInjectorSpecs" style="display:none;">
+                    <div class="input-row">
+                        <div class="input-group">
+                            <label for="customInjectorSize">Injector Size:</label>
+                            <input type="number" id="customInjectorSize" placeholder="34" min="10" max="200">
+                            <span>lb/hr</span>
+                        </div>
+                        <div class="input-group">
+                            <label for="customInjectorType">Injector Type:</label>
+                            <select id="customInjectorType">
+                                <option value="EV1">EV1 Style (older)</option>
+                                <option value="EV6">EV6 Style (newer)</option>
+                                <option value="Low-Z">Low Impedance</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="injectorSpecs" class="auto-specs">
+                    <!-- Auto-populated injector specifications -->
+                </div>
+            </div>
+
+            <div class="input-section">
+                <h3>Fuel Delivery</h3>
+                <div class="input-row">
+                    <div class="input-group">
+                        <label for="fuelPump">Fuel Pump:</label>
+                        <select id="fuelPump" onchange="loadPumpSpecs()">
+                            <option value="">Select your fuel pump...</option>
+                            <option value="Walbro_255">Walbro 255 LPH</option>
+                            <option value="Walbro_450">Walbro 450 LPH</option>
+                            <option value="Aeromotive_340">Aeromotive Stealth 340</option>
+                            <option value="stock">Stock pump</option>
+                            <option value="unknown">Don't know/Other</option>
+                        </select>
+                    </div>
+                    <div class="input-group">
+                        <label for="fuelPressure">Fuel Pressure:</label>
+                        <input type="number" id="fuelPressure" value="43.5" placeholder="43.5" min="30" max="80">
+                        <span>psi</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="input-section">
+                <h3>Fuel Type & Usage</h3>
+                <div class="input-row">
+                    <div class="input-group">
+                        <label for="fuelType">Fuel Type:</label>
+                        <select id="fuelType" onchange="updateTimingRecommendation()">
+                            <option value="87">87 Octane (Regular)</option>
+                            <option value="89">89 Octane (Mid-grade)</option>
+                            <option value="91">91 Octane (Premium)</option>
+                            <option value="93">93 Octane (Premium)</option>
+                            <option value="100">100 Octane (Race Gas)</option>
+                            <option value="110">110 Octane (Race Gas)</option>
+                            <option value="E85">E85 Ethanol</option>
+                        </select>
+                    </div>
+                    <div class="input-group">
+                        <label for="intendedUse">Intended Use:</label>
+                        <select id="intendedUse" onchange="updateAFRRecommendation()">
+                            <option value="street">Street driving (economy focus)</option>
+                            <option value="street_performance">Street performance</option>
+                            <option value="street_strip">Street/Strip</option>
+                            <option value="track_only">Track only</option>
+                            <option value="drag_racing">Drag racing</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 4: Ignition System -->
+        <div class="form-step" id="step4">
+            <h2>⚡ Ignition System</h2>
+            
+            <div class="input-section">
+                <h3>Ignition Coil</h3>
+                <div class="input-group">
+                    <label for="ignitionCoil">Coil Type:</label>
+                    <select id="ignitionCoil" onchange="loadCoilSpecs()">
+                        <option value="">Select your coil type...</option>
+                        <option value="Ford_TFI">Ford TFI Distributor</option>
+                        <option value="Ford_EDIS">Ford EDIS Waste Spark</option>
+                        <option value="GM_HEI">GM HEI Distributor</option>
+                        <option value="MSD_Blaster_SS">MSD Blaster SS</option>
+                        <option value="MSD_Smart_Coils">MSD Smart Coils</option>
+                        <option value="LS1_COP">LS1 Coil-on-Plug</option>
+                        <option value="LS2_COP">LS2/LS3 Coil-on-Plug</option>
+                        <option value="unknown">Don't know/Other</option>
+                    </select>
+                </div>
+
+                <div id="coilSpecs" class="auto-specs">
+                    <!-- Auto-populated coil specifications -->
+                </div>
+            </div>
+
+            <div class="input-section">
+                <h3>🎯 Timing Setup Guidance</h3>
+                <div class="timing-guidance">
+                    <div class="guidance-box">
+                        <h4>💡 Recommended Initial Timing Procedure:</h4>
+                        <ol>
+                            <li><strong>Set base timing:</strong> 10° BTDC at idle with timing light</li>
+                            <li><strong>Check mechanical advance:</strong> Rev to 3000 RPM, should see ~34° total</li>
+                            <li><strong>Verify timing curve:</strong> Gradually increase RPM, timing should advance smoothly</li>
+                            <li><strong>Start conservative:</strong> This tune will provide safe baseline timing</li>
+                            <li><strong>Advance gradually:</strong> Add 1-2° at a time while monitoring for knock</li>
+                        </ol>
+                    </div>
+                    <div id="timingRecommendation" class="recommendation-box">
+                        <!-- Dynamic timing recommendations based on fuel type -->
+                    </div>
+                </div>
+            </div>
+
+            <div class="input-section">
+                <h3>Safety Settings</h3>
+                <div class="input-row">
+                    <div class="input-group">
+                        <label for="revLimit">Rev Limit:</label>
+                        <input type="number" id="revLimit" placeholder="6500" min="4000" max="8500">
+                        <span>RPM</span>
+                    </div>
+                    <div class="input-group">
+                        <label for="safetyLevel">Safety Level:</label>
+                        <select id="safetyLevel">
+                            <option value="conservative">Conservative (recommended)</option>
+                            <option value="moderate">Moderate</option>
+                            <option value="aggressive">Aggressive (experienced only)</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 5: Sensors -->
+        <div class="form-step" id="step5">
+            <h2>📊 Sensor System</h2>
+            
+            <div class="input-section">
+                <h3>Wideband O2 Sensor</h3>
+                <div class="input-group">
+                    <label for="widebandSensor">Wideband Controller:</label>
+                    <select id="widebandSensor" onchange="loadWidebandSpecs()">
+                        <option value="">Select your wideband...</option>
+                        <option value="AEM_30-4110">AEM 30-4110</option>
+                        <option value="AEM_X-Series">AEM X-Series</option>
+                        <option value="Innovate_LC2">Innovate LC-2</option>
+                        <option value="Innovate_MTX-L">Innovate MTX-L</option>
+                        <option value="PLX_SM-AFR">PLX SM-AFR</option>
+                        <option value="Zeitronix_Zt3">Zeitronix ZT-3</option>
+                        <option value="none">No wideband (narrowband only)</option>
+                        <option value="unknown">Don't know model</option>
+                    </select>
+                </div>
+
+                <div id="widebandSpecs" class="auto-specs">
+                    <!-- Auto-populated wideband specifications -->
+                </div>
+
+                <div id="widebandWarning" class="warning-box" style="display:none;">
+                    <p>⚠️ <strong>No wideband detected:</strong> This tune will provide safe AFR targets, but a wideband O2 sensor is strongly recommended for any performance tuning or verification.</p>
+                </div>
+            </div>
+
+            <div class="input-section">
+                <h3>Engine Sensors</h3>
+                <div class="input-row">
+                    <div class="input-group">
+                        <label for="mapSensor">MAP Sensor:</label>
+                        <select id="mapSensor">
+                            <option value="1bar">1 Bar (stock naturally aspirated)</option>
+                            <option value="2bar">2 Bar (mild boost/high compression)</option>
+                            <option value="3bar">3 Bar (high boost applications)</option>
+                            <option value="4bar">4 Bar (extreme boost)</option>
+                        </select>
+                    </div>
+                    <div class="input-group">
+                        <label for="tpsType">TPS Type:</label>
+                        <select id="tpsType">
+                            <option value="standard">Standard 0-5V TPS</option>
+                            <option value="gm_3wire">GM 3-wire TPS</option>
+                            <option value="ford_3wire">Ford 3-wire TPS</option>
+                            <option value="unknown">Don't know/Stock</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="input-section">
+                <h3>Temperature Sensors</h3>
+                <div class="input-row">
+                    <div class="input-group">
+                        <label for="cltSensor">Coolant Temp Sensor:</label>
+                        <select id="cltSensor">
+                            <option value="gm_2wire">GM 2-wire (most common)</option>
+                            <option value="ford_2wire">Ford 2-wire</option>
+                            <option value="bosch">Bosch sensor</option>
+                            <option value="unknown">Don't know/Stock</option>
+                        </select>
+                    </div>
+                    <div class="input-group">
+                        <label for="iatSensor">Intake Air Temp:</label>
+                        <select id="iatSensor">
+                            <option value="gm_2wire">GM 2-wire (most common)</option>
+                            <option value="ford_2wire">Ford 2-wire</option>
+                            <option value="bosch">Bosch sensor</option>
+                            <option value="none">No IAT sensor</option>
+                            <option value="unknown">Don't know/Stock</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 6: Generate -->
+        <div class="form-step" id="step6">
+            <h2>🎯 Generate Your Tune</h2>
+            
+            <div id="validationResults">
+                <!-- Validation warnings and suggestions will appear here -->
+            </div>
+
+            <div class="tune-summary" id="tuneSummary">
+                <!-- Tune summary will be populated here -->
+            </div>
+
+            <div class="generate-section">
+                <button id="generateBtn" class="generate-button" onclick="generateTune()">
+                    🚀 Generate MSQ File
+                </button>
+                
+                <div class="output-options">
+                    <label>
+                        <input type="checkbox" id="includeDocumentation" checked>
+                        Include tuning documentation
+                    </label>
+                    <label>
+                        <input type="checkbox" id="includeNotes" checked>
+                        Include setup notes
+                    </label>
+                </div>
+            </div>
+
+            <div id="generationResults" style="display:none;">
+                <!-- Generation results will appear here -->
+            </div>
+        </div>
+
+        <!-- Navigation -->
+        <div class="navigation">
+            <button id="prevBtn" onclick="prevStep()" style="display:none;">← Previous</button>
+            <button id="nextBtn" onclick="nextStep()">Next →</button>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="js/databases.js"></script>
+    <script src="js/calculations.js"></script>
+    <script src="js/msqTemplate.js"></script>
+    <script src="js/tuneGenerator.js"></script>
+</body>
+</html>
