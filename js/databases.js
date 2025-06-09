@@ -134,4 +134,7 @@ const timingProfiles = {
     }
 };
 
+const fuelPumpDatabase={'Walbro_255':{flow:'255 LPH',pressure:'43.5 psi',maxHP:400,fuelType:'gasoline',voltage:'12V',notes:'Walbro 255 - supports up to 400hp, very reliable',powerConsumption:'6-8 amps'},'Walbro_450':{flow:'450 LPH',pressure:'58 psi',maxHP:700,fuelType:'gasoline',voltage:'12V',notes:'Walbro 450 - high performance, supports serious power',powerConsumption:'12-15 amps'},'Aeromotive_340':{flow:'340 LPH',pressure:'60 psi',maxHP:500,fuelType:'gasoline/E85',voltage:'12V',notes:'Aeromotive Stealth 340 - E85 compatible, quiet operation',powerConsumption:'8-10 amps'},'stock':{flow:'Unknown',pressure:'Standard',maxHP:200,fuelType:'gasoline',voltage:'12V',notes:'Stock fuel pump - adequate for stock applications',powerConsumption:'4-6 amps'}};
+
+
 console.log('databases.js loaded successfully');
