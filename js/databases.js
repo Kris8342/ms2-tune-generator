@@ -1,3 +1,8 @@
+// MS2/Extra Tune Generator - Component Database
+// Easy to add new components - just add entries at the bottom of each section
+
+// ===== INJECTOR DATABASE =====
+// Add new injectors here - copy format below
 const injectorDatabase = {
     'Ford_19lb_Yellow': {
         size: 19,
@@ -5,54 +10,162 @@ const injectorDatabase = {
         impedance: 'High-Z',
         deadtime: 1.0,
         batteryCorrection: 0.2,
-        flowVsPressure: {30: 17, 40: 19, 50: 21, 60: 22},
-        notes: 'Stock Ford 5.0L injectors - yellow tops',
+        flowVsPressure: { 30: 17, 40: 19, 50: 21, 60: 22 },
+        notes: 'Stock Ford 5.0L injectors - yellow tops, very reliable',
         maxHP: 190,
         recommendedUse: ['street', 'mild_performance']
     },
+    
     'Ford_24lb_Green': {
         size: 24,
-        type: 'EV1', 
+        type: 'EV1',
         impedance: 'High-Z',
         deadtime: 0.8,
         batteryCorrection: 0.2,
-        flowVsPressure: {30: 22, 40: 24, 50: 26, 60: 28},
-        notes: 'Ford Explorer 5.0L injectors - green tops',
+        flowVsPressure: { 30: 22, 40: 24, 50: 26, 60: 28 },
+        notes: 'Ford Explorer 5.0L injectors - green tops, popular upgrade',
         maxHP: 240,
         recommendedUse: ['street', 'street_performance']
     },
+    
+    'Ford_30lb_Blue': {
+        size: 30,
+        type: 'EV1',
+        impedance: 'High-Z',
+        deadtime: 0.7,
+        batteryCorrection: 0.2,
+        flowVsPressure: { 30: 28, 40: 30, 50: 32, 60: 34 },
+        notes: 'Ford Cobra injectors - blue tops, excellent street/strip',
+        maxHP: 300,
+        recommendedUse: ['street_performance', 'street_strip']
+    },
+    
     'Bosch_42lb_Green': {
         size: 42,
         type: 'EV1',
-        impedance: 'High-Z', 
+        impedance: 'High-Z',
         deadtime: 0.6,
         batteryCorrection: 0.15,
-        flowVsPressure: {30: 38, 40: 42, 50: 46, 60: 49},
-        notes: 'Bosch 42lb Green Giants - very popular',
+        flowVsPressure: { 30: 38, 40: 42, 50: 46, 60: 49 },
+        notes: 'Bosch 42lb "Green Giants" - very popular performance choice',
         maxHP: 420,
         recommendedUse: ['street_performance', 'street_strip', 'track']
+    },
+    
+    'Delphi_60lb_Multec': {
+        size: 60,
+        type: 'EV6',
+        impedance: 'High-Z',
+        deadtime: 0.5,
+        batteryCorrection: 0.1,
+        flowVsPressure: { 30: 55, 40: 60, 50: 65, 60: 69 },
+        notes: 'Delphi Multec 2 - modern EV6 style, excellent atomization',
+        maxHP: 600,
+        recommendedUse: ['track', 'drag_racing', 'high_performance']
+    },
+    
+    'Siemens_80lb': {
+        size: 80,
+        type: 'EV6',
+        impedance: 'High-Z',
+        deadtime: 0.45,
+        batteryCorrection: 0.1,
+        flowVsPressure: { 30: 72, 40: 80, 50: 87, 60: 93 },
+        notes: 'Siemens 80lb - high flow for serious power applications',
+        maxHP: 800,
+        recommendedUse: ['drag_racing', 'high_performance', 'turbo']
     }
+    
+    // ADD NEW INJECTORS HERE - copy the format above
+    // Example:
+    // 'Your_New_Injector': {
+    //     size: 50,
+    //     type: 'EV6',
+    //     impedance: 'High-Z',
+    //     deadtime: 0.5,
+    //     batteryCorrection: 0.12,
+    //     flowVsPressure: { 30: 45, 40: 50, 50: 55, 60: 58 },
+    //     notes: 'Your description here',
+    //     maxHP: 500,
+    //     recommendedUse: ['street', 'performance']
+    // }
 };
 
+// ===== COIL DATABASE =====
+// Add new coils here
 const coilDatabase = {
     'Ford_TFI': {
         type: 'Distributor',
         dwellTime: 3.0,
+        chargingTime: 2.0,
+        sparkDuration: 1.0,
         maxRPM: 6500,
-        notes: 'Stock Ford TFI distributor',
+        sparkEnergy: 'Standard',
+        notes: 'Stock Ford TFI - reliable to 6500 RPM, good for street use',
         settings: {
             dwellControl: 'voltage_based',
             sparkOutput: 'going_high'
         }
+    },
+    
+    'Ford_EDIS': {
+        type: 'Waste spark',
+        dwellTime: 3.5,
+        chargingTime: 1.8,
+        sparkDuration: 1.5,
+        maxRPM: 6800,
+        sparkEnergy: 'High',
+        notes: 'Ford EDIS waste spark system - excellent performance',
+        settings: {
+            dwellControl: 'dwell_time',
+            sparkOutput: 'going_high',
+            edisMode: true
+        }
+    },
+    
+    'GM_HEI': {
+        type: 'Distributor',
+        dwellTime: 4.0,
+        chargingTime: 2.2,
+        sparkDuration: 1.2,
+        maxRPM: 6200,
+        sparkEnergy: 'High',
+        notes: 'GM HEI distributor - high energy, good for performance',
+        settings: {
+            dwellControl: 'voltage_based',
+            sparkOutput: 'going_high'
+        }
+    },
+    
+    'LS1_COP': {
+        type: 'Coil on plug',
+        dwellTime: 4.0,
+        chargingTime: 1.2,
+        sparkDuration: 2.0,
+        maxRPM: 7000,
+        sparkEnergy: 'High',
+        notes: 'GM LS1 coil-on-plug - excellent performance and reliability',
+        settings: {
+            dwellControl: 'dwell_time',
+            sparkOutput: 'going_high',
+            copMode: true
+        }
     }
+    
+    // ADD NEW COILS HERE
 };
 
+// ===== WIDEBAND DATABASE =====
+// Add new wideband controllers here
 const widebandDatabase = {
     'AEM_30-4110': {
         type: 'Bosch LSU 4.9',
         voltage: '0-5V',
         afrRange: '10.0-20.3',
-        notes: 'AEM 30-4110 wideband controller',
+        calibration: 'linear',
+        heaterControl: 'internal',
+        accuracy: '±0.1 AFR',
+        notes: 'AEM 30-4110 - very popular and reliable wideband controller',
         settings: {
             sensorType: 'Custom',
             lowVoltage: 0.0,
@@ -60,9 +173,76 @@ const widebandDatabase = {
             lowAFR: 10.0,
             highAFR: 20.3
         }
+    },
+    
+    'Innovate_LC2': {
+        type: 'Bosch LSU 4.9',
+        voltage: '0-5V',
+        afrRange: '7.35-22.39',
+        calibration: 'innovate_lc2',
+        heaterControl: 'internal',
+        accuracy: '±0.1 AFR',
+        notes: 'Innovate LC-2 - good budget option, widely supported',
+        settings: {
+            sensorType: 'Custom',
+            lowVoltage: 0.0,
+            highVoltage: 5.0,
+            lowAFR: 7.35,
+            highAFR: 22.39
+        }
     }
+    
+    // ADD NEW WIDEBANDS HERE
 };
 
+// ===== FUEL PUMP DATABASE =====
+// Add new fuel pumps here
+const fuelPumpDatabase = {
+    'Walbro_255': {
+        flow: '255 LPH',
+        pressure: '43.5 psi',
+        maxHP: 400,
+        fuelType: 'gasoline',
+        voltage: '12V',
+        notes: 'Walbro 255 - supports up to 400hp, very reliable',
+        powerConsumption: '6-8 amps'
+    },
+    
+    'Walbro_450': {
+        flow: '450 LPH',
+        pressure: '58 psi',
+        maxHP: 700,
+        fuelType: 'gasoline',
+        voltage: '12V',
+        notes: 'Walbro 450 - high performance, supports serious power',
+        powerConsumption: '12-15 amps'
+    },
+    
+    'Aeromotive_340': {
+        flow: '340 LPH',
+        pressure: '60 psi',
+        maxHP: 500,
+        fuelType: 'gasoline/E85',
+        voltage: '12V',
+        notes: 'Aeromotive Stealth 340 - E85 compatible, quiet operation',
+        powerConsumption: '8-10 amps'
+    },
+    
+    'stock': {
+        flow: 'Unknown',
+        pressure: 'Standard',
+        maxHP: 200,
+        fuelType: 'gasoline',
+        voltage: '12V',
+        notes: 'Stock fuel pump - adequate for stock applications',
+        powerConsumption: '4-6 amps'
+    }
+    
+    // ADD NEW FUEL PUMPS HERE
+};
+
+// ===== KNOWN COMBINATIONS =====
+// Add proven engine combos here
 const knownCombos = {
     'Ford_302_X303_34lb': {
         engine: {
@@ -91,11 +271,46 @@ const knownCombos = {
             revLimit: 6500,
             afrProfile: 'street_performance',
             timingProfile: 'conservative',
-            notes: 'Popular street/strip combo, proven reliable'
+            notes: 'Popular street/strip combo, proven reliable and powerful'
+        }
+    },
+    
+    'Ford_302_stock_19lb': {
+        engine: {
+            displacement: 302,
+            cylinders: 8,
+            compression: 9.0,
+            family: 'Ford_302'
+        },
+        camshaft: {
+            profile: 'stock',
+            duration: 204,
+            lift: 0.395,
+            lsa: 114
+        },
+        fuel: {
+            injectorModel: 'Ford_19lb_Yellow',
+            fuelPressure: 39,
+            fuelType: '87'
+        },
+        ignition: {
+            coilType: 'Ford_TFI',
+            revLimit: 6000
+        },
+        tuneParams: {
+            requiredFuel: 7.1,
+            revLimit: 6000,
+            afrProfile: 'street',
+            timingProfile: 'conservative',
+            notes: 'Stock 5.0L setup, excellent reliability and fuel economy'
         }
     }
+    
+    // ADD NEW PROVEN COMBOS HERE
 };
 
+// ===== AFR PROFILES =====
+// Add new AFR strategies here
 const afrProfiles = {
     'street': {
         idle: 14.7,
@@ -105,6 +320,7 @@ const afrProfiles = {
         warmup: 13.5,
         description: 'Economy focused street driving'
     },
+    
     'street_performance': {
         idle: 14.7,
         cruise: 15.0,
@@ -112,9 +328,22 @@ const afrProfiles = {
         wot: 12.2,
         warmup: 13.2,
         description: 'Balanced street performance'
+    },
+    
+    'street_strip': {
+        idle: 14.0,
+        cruise: 14.5,
+        acceleration: 12.5,
+        wot: 11.8,
+        warmup: 13.0,
+        description: 'Street/strip dual purpose'
     }
+    
+    // ADD NEW AFR PROFILES HERE
 };
 
+// ===== TIMING PROFILES =====
+// Add new timing strategies here
 const timingProfiles = {
     'conservative': {
         idle: 15,
@@ -122,8 +351,9 @@ const timingProfiles = {
         power: 28,
         redline: 25,
         advance_rate: 'slow',
-        description: 'Safe for pump gas'
+        description: 'Safe for pump gas and unknown octane'
     },
+    
     'moderate': {
         idle: 18,
         cruise: 36,
@@ -132,9 +362,9 @@ const timingProfiles = {
         advance_rate: 'medium',
         description: 'Good balance of performance and safety'
     }
+    
+    // ADD NEW TIMING PROFILES HERE
 };
 
-const fuelPumpDatabase={'Walbro_255':{flow:'255 LPH',pressure:'43.5 psi',maxHP:400,fuelType:'gasoline',voltage:'12V',notes:'Walbro 255 - supports up to 400hp, very reliable',powerConsumption:'6-8 amps'},'Walbro_450':{flow:'450 LPH',pressure:'58 psi',maxHP:700,fuelType:'gasoline',voltage:'12V',notes:'Walbro 450 - high performance, supports serious power',powerConsumption:'12-15 amps'},'Aeromotive_340':{flow:'340 LPH',pressure:'60 psi',maxHP:500,fuelType:'gasoline/E85',voltage:'12V',notes:'Aeromotive Stealth 340 - E85 compatible, quiet operation',powerConsumption:'8-10 amps'},'stock':{flow:'Unknown',pressure:'Standard',maxHP:200,fuelType:'gasoline',voltage:'12V',notes:'Stock fuel pump - adequate for stock applications',powerConsumption:'4-6 amps'}};
-
-
-console.log('databases.js loaded successfully');
+// Database loaded successfully
+console.log('🗄️ Component databases loaded successfully');
