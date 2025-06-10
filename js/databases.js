@@ -74,21 +74,31 @@ const injectorDatabase = {
         notes: 'Siemens 80lb - high flow for serious power applications',
         maxHP: 800,
         recommendedUse: ['drag_racing', 'high_performance', 'turbo']
-    }
+    },
     
-    // ADD NEW INJECTORS HERE - copy the format above
-    // Example:
-    // 'Your_New_Injector': {
-    //     size: 50,
-    //     type: 'EV6',
-    //     impedance: 'High-Z',
-    //     deadtime: 0.5,
-    //     batteryCorrection: 0.12,
-    //     flowVsPressure: { 30: 45, 40: 50, 50: 55, 60: 58 },
-    //     notes: 'Your description here',
-    //     maxHP: 500,
-    //     recommendedUse: ['street', 'performance']
-    // }
+'InjectorDynamics_1050X': {
+    size: 105,
+    type: 'EV14',
+    impedance: 'High-Z',
+    deadtime: 0.38,
+    batteryCorrection: 0.11,
+    flowVsPressure: { 40: 105, 45: 110, 50: 115, 60: 125 },
+    notes: 'ID1050X – E85 compatible, excellent atomization, modern EV14',
+    maxHP: 1050,
+    recommendedUse: ['street_performance', 'track', 'turbo', 'e85']
+},
+
+'InjectorDynamics_2000cc': {
+    size: 210,
+    type: 'EV14',
+    impedance: 'High-Z',
+    deadtime: 0.40,
+    batteryCorrection: 0.10,
+    flowVsPressure: { 40: 200, 50: 215, 60: 230 },
+    notes: 'ID2000 – For very high‑power forced‑induction builds',
+    maxHP: 2000,
+    recommendedUse: ['drag_racing', 'turbo', 'high_performance', 'e85']
+}
 };
 
 // ===== COIL DATABASE =====
@@ -150,9 +160,37 @@ const coilDatabase = {
             sparkOutput: 'going_high',
             copMode: true
         }
-    }
+    },
     
-    // ADD NEW COILS HERE
+'AEM_SmartCoil': {
+    type: 'Coil near plug',
+    dwellTime: 4.5,
+    chargingTime: 1.0,
+    sparkDuration: 2.2,
+    maxRPM: 9000,
+    sparkEnergy: 'Very High',
+    notes: 'AEM smart coil / IGN‑1A style, high‑energy replacement',
+    settings: {
+        dwellControl: 'dwell_time',
+        sparkOutput: 'going_high',
+        smartCoilMode: true
+    }
+},
+
+'IGN1A_Coil': {
+    type: 'Coil near plug',
+    dwellTime: 5.0,
+    chargingTime: 0.9,
+    sparkDuration: 2.3,
+    maxRPM: 9500,
+    sparkEnergy: 'Very High',
+    notes: 'Honeywell IGN‑1A coil widely used in motorsport',
+    settings: {
+        dwellControl: 'dwell_time',
+        sparkOutput: 'going_high',
+        smartCoilMode: true
+    }
+}
 };
 
 // ===== WIDEBAND DATABASE =====
@@ -190,9 +228,41 @@ const widebandDatabase = {
             lowAFR: 7.35,
             highAFR: 22.39
         }
-    }
+    },
     
-    // ADD NEW WIDEBANDS HERE
+'14Point7_Spartan2': {
+    type: 'Bosch LSU 4.9',
+    voltage: '0‑5V',
+    afrRange: '9.0‑22.0',
+    calibration: 'linear',
+    heaterControl: 'internal',
+    accuracy: '±0.05 AFR',
+    notes: '14Point7 Spartan 2 – fast response, open‑source friendly',
+    settings: {
+        sensorType: 'Custom',
+        lowVoltage: 0.0,
+        highVoltage: 5.0,
+        lowAFR: 9.0,
+        highAFR: 22.0
+    }
+},
+
+'PLX_DM6': {
+    type: 'Bosch LSU 4.9',
+    voltage: '0‑5V',
+    afrRange: '10.0‑20.0',
+    calibration: 'linear',
+    heaterControl: 'internal',
+    accuracy: '±0.1 AFR',
+    notes: 'PLX DM‑6 GEN4 – digital gauge with linear output',
+    settings: {
+        sensorType: 'Custom',
+        lowVoltage: 0.0,
+        highVoltage: 5.0,
+        lowAFR: 10.0,
+        highAFR: 20.0
+    }
+}
 };
 
 // ===== FUEL PUMP DATABASE =====
@@ -236,9 +306,28 @@ const fuelPumpDatabase = {
         voltage: '12V',
         notes: 'Stock fuel pump - adequate for stock applications',
         powerConsumption: '4-6 amps'
-    }
+    },
     
-    // ADD NEW FUEL PUMPS HERE
+'Bosch_044': {
+    flow: '300 LPH',
+    pressure: '72 psi',
+    maxHP: 600,
+    fuelType: 'gasoline',
+    voltage: '12V',
+    notes: 'Bosch 0 580 254 044 – external inline, motorsport staple',
+    powerConsumption: '10 amps'
+},
+
+'DeatschWerks_DW400': {
+    flow: '415 LPH',
+    pressure: '40 psi',
+    maxHP: 750,
+    fuelType: 'gasoline/E85',
+    voltage: '12V',
+    notes: 'DW400 in‑tank pump, E85 compatible, quiet',
+    powerConsumption: '13‑16 amps'
+}
+
 };
 
 // ===== KNOWN COMBINATIONS =====
@@ -337,9 +426,25 @@ const afrProfiles = {
         wot: 11.8,
         warmup: 13.0,
         description: 'Street/strip dual purpose'
-    }
+    },
     
-    // ADD NEW AFR PROFILES HERE
+'forced_induction': {
+    idle: 13.8,
+    cruise: 14.7,
+    acceleration: 12.0,
+    wot: 11.5,
+    warmup: 12.8,
+    description: 'Safe AFRs for moderate boost on pump gas'
+},
+
+'e85_performance': {
+    idle: 13.0,
+    cruise: 13.8,
+    acceleration: 11.8,
+    wot: 11.0,
+    warmup: 12.5,
+    description: 'Optimized for E85 high‑performance street/strip'
+}
 };
 
 // ===== TIMING PROFILES =====
@@ -361,9 +466,25 @@ const timingProfiles = {
         redline: 28,
         advance_rate: 'medium',
         description: 'Good balance of performance and safety'
-    }
+    },
     
-    // ADD NEW TIMING PROFILES HERE
+'aggressive': {
+    idle: 18,
+    cruise: 38,
+    power: 34,
+    redline: 30,
+    advance_rate: 'fast',
+    description: 'Max power on high‑octane or race fuel'
+},
+
+'boosted': {
+    idle: 14,
+    cruise: 30,
+    power: 20,
+    redline: 18,
+    advance_rate: 'boost_retard',
+    description: 'Base map for turbo/supercharged engines'
+}
 };
 
 // Database loaded successfully
