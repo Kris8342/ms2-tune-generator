@@ -4,19 +4,50 @@
 // ===== MAIN APPLICATION CLASS =====
 
 class TuneGeneratorApp {
-    constructor() {
-        // Application state
-        this.currentStep = 1;
-        this.totalSteps = 6;
-        this.formData = {};
-        this.componentSpecs = {};
-        this.validationResults = { warnings: [], suggestions: [], errors: [] };
-        this.msqGenerator = null; // Initialize as null, create later
-        this.setupType = 'detailed'; // 'quick' or 'detailed'
-        
-        // Initialize the application
-        this.initializeApp();
+constructor() {
+    // Application state
+    this.currentStep = 1;
+    this.totalSteps = 6;
+    this.formData = {};
+    this.componentSpecs = {};
+    this.validationResults = { warnings: [], suggestions: [], errors: [] };
+    this.msqGenerator = null; // Initialize as null, create later
+    this.setupType = 'detailed'; // 'quick' or 'detailed'
+    
+    // Initialize the application
+    this.initializeApp();
+}
+
+// ===== INITIALIZATION =====
+
+initializeApp() {
+    console.log('🚀 MS2/Extra Tune Generator Initializing...');
+    
+    // Initialize MSQ generator after a short delay to ensure all scripts are loaded
+    setTimeout(() => {
+        this.initializeMSQGenerator();
+    }, 100);
+    
+    this.updateProgress();
+    this.attachEventListeners();
+    this.loadDefaultValues();
+}
+
+initializeMSQGenerator() {
+    try {
+        if (typeof MSQGenerator !== 'undefined') {
+            this.msqGenerator = new MSQGenerator();
+            console.log('✅ MSQ Generator initialized successfully');
+        } else {
+            console.error('❌ MSQGenerator class not found');
+            this.msqGenerator = null;
+        }
+    } catch (error) {
+        console.error('❌ Error initializing MSQ Generator:', error);
+        this.msqGenerator = null;
     }
+}
+
     
     // ===== INITIALIZATION =====
     
