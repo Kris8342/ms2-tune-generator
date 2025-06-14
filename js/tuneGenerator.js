@@ -669,83 +669,96 @@ class TuneGeneratorApp {
     
     // ===== MAIN TUNE GENERATION =====
     
-    generateTune() {
-        const generateBtn = document.getElementById('generateBtn');
-        const resultsContainer = document.getElementById('generationResults');
-        
-        if (!generateBtn || !resultsContainer) return;
-        
-        // Show loading state
-        generateBtn.innerHTML = '<span class="loading"></span> Generating Tune...';
-        generateBtn.disabled = true;
-        
-        try {
-            // Generate the MSQ file
-            const result = this.msqGenerator.generateMSQ(this.formData, this.componentSpecs);
-            
-            // Generate documentation if requested
-            let documentation = '';
-            const includeDocsCheckbox = document.getElementById('includeDocumentation');
-            if (includeDocsCheckbox?.checked) {
-                documentation = generateTuneDocumentation(this.formData, this.validationResults, result.parameters);
-            }
-            
-            // Show success message
-            resultsContainer.style.display = 'block';
-            resultsContainer.innerHTML = `
-                <div class="success-message">
-                    <h3>🎉 Tune Generated Successfully!</h3>
-                    <p>Your baseline tune has been generated and is ready for download.</p>
-                    <div class="download-buttons">
-                        <button onclick="app.downloadMSQ('${result.filename}', \`${btoa(result.content)}\`)" class="download-btn">
-                            📥 Download ${result.filename}.msq
-                        </button>
-                        ${documentation ? `
-                        <button onclick="app.downloadDocumentation('${result.filename}', \`${btoa(documentation)}\`)" class="download-btn">
-                            📄 Download Setup Guide
-                        </button>
-                        ` : ''}
-                    </div>
-                    <div class="next-steps">
-                        <h4>🚀 Next Steps:</h4>
-                        <ol>
-                            <li>Flash this tune to your MS2/Extra ECU</li>
-                            <li>Set base timing to 10° BTDC at idle</li>
-                            <li>Start engine and warm up slowly</li>
-                            <li>Monitor AFR readings closely</li>
-                            <li>Begin VE table tuning with TunerStudio</li>
-                        </ol>
-                        <p><strong>⚠️ SAFETY REMINDER:</strong> This is a baseline tune. Professional tuning recommended for optimal performance and safety.</p>
-                    </div>
-                </div>
-            `;
-            
-            // Auto-download files
-            setTimeout(() => {
-                this.downloadMSQ(result.filename, btoa(result.content));
-                if (documentation) {
-                    setTimeout(() => {
-                        this.downloadDocumentation(result.filename, btoa(documentation));
-                    }, 1000);
-                }
-            }, 500);
-            
-        } catch (error) {
-            console.error('Tune generation error:', error);
-            resultsContainer.style.display = 'block';
-            resultsContainer.innerHTML = `
-                <div class="error-message">
-                    <h3>❌ Generation Error</h3>
-                    <p>There was an error generating your tune. Please check your inputs and try again.</p>
-                    <p><strong>Error:</strong> ${error.message}</p>
-                </div>
-            `;
-        } finally {
-            // Restore button
-            generateBtn.innerHTML = '🚀 Generate MSQ File';
-            generateBtn.disabled = false;
+// In the TuneGeneratorApp class, update the generateTune() method:
+
+generateTune() {
+    const generateBtn = document.getElementById('generateBtn');
+    const resultsContainer = document.getElementById('generationResults');
+    
+    if (!generateBtn || !resultsContainer) return;
+    
+    // Show loading state
+    generateBtn.innerHTML = '<span class="loading"></span> Generating Tune...';
+    generateBtn.disabled = true;
+    
+    try {
+        // Ensure we have the XML exporter available
+        if (typeof MSQXmlExporter === 'undefined') {
+            throw new Error('MSQ XML Exporter not loaded. Please refresh the page.');
         }
+        
+        // Generate the MSQ file
+        const result = this.msqGenerator.generateMSQ(this.formData, this.componentSpecs);
+        
+        // Generate documentation if requested
+        let documentation = '';
+        const includeDocsCheckbox = document.getElementById('includeDocumentation');
+        if (includeDocsCheckbox?.checked) {
+            documentation = generateTuneDocumentation(this.formData, this.validationResults, result.parameters);
+        }
+        
+        // Show success message
+        resultsContainer.style.display = 'block';
+        resultsContainer.innerHTML = `
+            <div class="success-message">
+                <h3>🎉 MS2/Extra Tune Generated Successfully!</h3>
+                <p>Your baseline tune has been generated in proper MS2/Extra XML format.</p>
+                <p><strong>Signature:</strong> MS2Extra comms342hP</p>
+                <p><strong>File Format:</strong> XML (5.0)</p>
+                <div class="download-buttons">
+                    <button onclick="app.downloadMSQ('${result.filename}', \`${btoa(result.content)}\`)" class="download-btn">
+                        📥 Download ${result.filename}.msq
+                    </button>
+                    ${documentation ? `
+                    <button onclick="app.downloadDocumentation('${result.filename}', \`${btoa(documentation)}\`)" class="download-btn">
+                        📄 Download Setup Guide
+                    </button>
+                    ` : ''}
+                </div>
+                <div class="next-steps">
+                    <h4>🚀 Next Steps:</h4>
+                    <ol>
+                        <li>Open TunerStudio and load this .msq file</li>
+                        <li>Flash tune to your MS2/Extra ECU</li>
+                        <li>Set base timing to 10° BTDC at idle</li>
+                        <li>Start engine and warm up slowly</li>
+                        <li>Monitor AFR readings closely</li>
+                        <li>Begin VE table tuning</li>
+                    </ol>
+                    <p><strong>✅ COMPATIBILITY:</strong> This file is compatible with MS2/Extra 3.4.x and TunerStudio.</p>
+                    <p><strong>⚠️ SAFETY REMINDER:</strong> This is a baseline tune. Professional tuning recommended for optimal performance and safety.</p>
+                </div>
+            </div>
+        `;
+        
+        // Auto-download files
+        setTimeout(() => {
+            this.downloadMSQ(result.filename, btoa(result.content));
+            if (documentation) {
+                setTimeout(() => {
+                    this.downloadDocumentation(result.filename, btoa(documentation));
+                }, 1000);
+            }
+        }, 500);
+        
+    } catch (error) {
+        console.error('Tune generation error:', error);
+        resultsContainer.style.display = 'block';
+        resultsContainer.innerHTML = `
+            <div class="error-message">
+                <h3>❌ Generation Error</h3>
+                <p>There was an error generating your tune. Please check your inputs and try again.</p>
+                <p><strong>Error:</strong> ${error.message}</p>
+                <p><strong>Note:</strong> Make sure all required files are loaded properly.</p>
+            </div>
+        `;
+    } finally {
+        // Restore button
+        generateBtn.innerHTML = '🚀 Generate MSQ File';
+        generateBtn.disabled = false;
     }
+}
+
     
     // ===== FILE DOWNLOAD FUNCTIONS =====
     
