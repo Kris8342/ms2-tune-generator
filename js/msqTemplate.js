@@ -1,26 +1,26 @@
-// MS2/Extra Tune Generator - MSQ File Generation
-// Handles creation of MS2/Extra .msq files
-// Add new MSQ features and file format updates here
-
-// ===== MSQ GENERATOR CLASS =====
+// MS2/Extra Tune Generator - MSQ XML File Generation
+// Generates proper MS2/Extra 3.4.x XML format files
+// Updated to match MS2Extra comms342hP signature
 
 class MSQGenerator {
     constructor() {
-        // Initialize MSQ generator
-        console.log('MSQ Generator initialized');
+        console.log('MS2/Extra XML MSQ Generator initialized');
     }
     
     /**
      * Main MSQ generation function
-     * Coordinates the entire MSQ creation process
+     * Creates proper MS2/Extra XML format files
      */
     generateMSQ(tuneData, componentSpecs) {
         try {
             // Calculate all parameters needed for MSQ
             const calculatedParams = this.calculateAllParameters(tuneData, componentSpecs);
             
-            // Convert to MSQ file format
-            const msqContent = this.convertToMSQFormat(calculatedParams);
+            // Generate tables for XML encoding
+            const tables = this.generateTables(tuneData, calculatedParams);
+            
+            // Create XML MSQ file
+            const msqContent = this.generateXMLMSQ(tables, tuneData);
             
             // Generate filename
             const filename = this.generateFilename(tuneData);
@@ -38,7 +38,6 @@ class MSQGenerator {
     
     /**
      * Calculate all parameters needed for MSQ file
-     * Centralizes all parameter calculations
      */
     calculateAllParameters(tuneData, componentSpecs) {
         const params = {};
@@ -54,131 +53,67 @@ class MSQGenerator {
         params.injectorDeadtime = componentSpecs.injector?.deadtime || 0.6;
         params.batteryCorrection = componentSpecs.injector?.batteryCorrection || 0.15;
         
-        // === VE TABLE ===
-        const veTable = generateVETable(tuneData);
-        params.veRpmBins = veTable.rpmBins.join(',');
-        params.veLoadBins = veTable.loadBins.join(',');
-        params.veTableData = this.formatTableData(veTable.data);
-        
-        // === AFR TABLE ===
-        const afrTable = generateAFRTable(tuneData, tuneData.afrProfile);
-        params.afrRpmBins = afrTable.rpmBins.join(',');
-        params.afrLoadBins = afrTable.loadBins.join(',');
-        params.afrTableData = this.formatTableData(afrTable.data);
-        
-        // === TIMING TABLE ===
-        const timingTable = generateTimingTable(tuneData, tuneData.timingProfile);
-        params.sparkRpmBins = timingTable.rpmBins.join(',');
-        params.sparkLoadBins = timingTable.loadBins.join(',');
-        params.sparkTableData = this.formatTableData(timingTable.data);
-        
-        // === REV LIMITER ===
-        params.hardRevLimit = tuneData.revLimit || 6500;
-        params.softRevLimit = (tuneData.revLimit || 6500) - 300;
-        
         // === ENGINE SETTINGS ===
         params.cylinders = tuneData.cylinders || 8;
         params.injectors = tuneData.cylinders || 8;
+        params.hardRevLimit = tuneData.revLimit || 6500;
+        params.softRevLimit = (tuneData.revLimit || 6500) - 300;
         
         return params;
     }
     
     /**
-     * Convert calculated parameters to MSQ file format
-     * Creates the actual .msq file content
+     * Generate all tune tables
      */
-    convertToMSQFormat(params) {
-        const msqLines = [];
+    generateTables(tuneData, params) {
+        // Generate VE Table (16x16)
+        const veTable = generateVETable(tuneData);
         
-        // === MSQ HEADER ===
-        msqLines.push('[MegaSquirt]');
-        msqLines.push('signature=MShift v0.01');
-        msqLines.push('fileVersion=029y3');
-        msqLines.push('');
+        // Generate AFR Table (16x16) 
+        const afrTable = generateAFRTable(tuneData, tuneData.afrProfile || 'street_performance');
         
-        // === CONSTANTS SECTION ===
-        msqLines.push('[Constants]');
+        // Generate Timing Table (16x16)
+        const timingTable = generateTimingTable(tuneData, tuneData.timingProfile || 'conservative');
         
-        // Core fuel settings
-        msqLines.push(`reqFuel=${params.requiredFuel}`);
-        msqLines.push(`injOpen=${params.injectorDeadtime}`);
-        msqLines.push(`battFac=${params.batteryCorrection}`);
-        
-        // Rev limiter settings
-        msqLines.push(`RevLimRpm2=${params.hardRevLimit}`);
-        msqLines.push(`RevLimRpm=${params.softRevLimit}`);
-        
-        // Engine configuration
-        msqLines.push(`nCylinders=${params.cylinders}`);
-        msqLines.push(`nInjectors=${params.injectors}`);
-        msqLines.push('engineType=0');
-        msqLines.push('algorithm=0');
-        
-        // Sensor settings
-        msqLines.push('mapType=0');
-        msqLines.push('fanTemp=210');
-        msqLines.push('fanHyst=5');
-        msqLines.push('primePulse=5.0');
-        msqLines.push('egoType=0');
-        msqLines.push('egoSwitch=400');
-        
-        // Ignition settings
-        msqLines.push('dwellcont=0');
-        msqLines.push('dwellrun=4.0');
-        msqLines.push('IdleAdv=15');
-        msqLines.push('triggerAngle=0');
-        msqLines.push('FixedAngle=10');
-        msqLines.push('SparkMode=0');
-        msqLines.push('IgInv=1');
-        
-        // Sensor calibrations
-        msqLines.push('mapADC=255,255,255,1023');
-        msqLines.push('matADC=32,158,177,121,239,90,252,68');
-        msqLines.push('cltADC=32,158,177,121,239,90,252,68');
-        msqLines.push('tpsADC=159,921,159,921');
-        msqLines.push('egoADC=159,921,123,123');
-        msqLines.push('');
-        
-        // === VE TABLE ===
-        msqLines.push('[VETable1]');
-        msqLines.push(`xBins=${params.veRpmBins}`);
-        msqLines.push(`yBins=${params.veLoadBins}`);
-        msqLines.push(`zBins=${params.veTableData}`);
-        msqLines.push('');
-        
-        // === AFR TABLE ===
-        msqLines.push('[AFRTable1]');
-        msqLines.push(`xBins=${params.afrRpmBins}`);
-        msqLines.push(`yBins=${params.afrLoadBins}`);
-        msqLines.push(`zBins=${params.afrTableData}`);
-        msqLines.push('');
-        
-        // === SPARK TABLE ===
-        msqLines.push('[SparkTable1]');
-        msqLines.push(`xBins=${params.sparkRpmBins}`);
-        msqLines.push(`yBins=${params.sparkLoadBins}`);
-        msqLines.push(`zBins=${params.sparkTableData}`);
-        msqLines.push('');
-        
-        // === COMMENTS ===
-        msqLines.push(`# Generated by MS2/Extra Tune Generator`);
-        msqLines.push(`# Generated on: ${new Date().toLocaleString()}`);
-        msqLines.push(`# SAFETY WARNING: This is a baseline tune. Professional tuning recommended.`);
-        
-        return msqLines.join('\n');
+        return {
+            veTable1: veTable.data,
+            afrTable1: afrTable.data,
+            sparkTable1: timingTable.data,
+            veRpmBins: veTable.rpmBins,
+            veLoadBins: veTable.loadBins,
+            afrRpmBins: afrTable.rpmBins,
+            afrLoadBins: afrTable.loadBins,
+            sparkRpmBins: timingTable.rpmBins,
+            sparkLoadBins: timingTable.loadBins
+        };
     }
     
     /**
-     * Format table data for MSQ file
-     * Converts 2D arrays to comma-separated format
+     * Generate XML MSQ file using the XML exporter
      */
-    formatTableData(tableData) {
-        return tableData.map(row => row.join(',')).join(',');
+    generateXMLMSQ(tables, tuneData) {
+        // Use the XML exporter to create proper MS2/Extra format
+        const xmlExporter = new MSQXmlExporter();
+        
+        const xmlOptions = {
+            signature: 'MS2Extra comms342hP',
+            revision: '20240609',
+            author: 'MS2/Extra Tune Generator',
+            comment: `Generated Baseline Tune for ${tuneData.displacement || 306}ci ${tuneData.engineFamily || 'Custom'} Engine`
+        };
+        
+        const tuneForXML = {
+            signature: 'MS2Extra comms342hP',
+            veTable1: tables.veTable1,
+            afrTable1: tables.afrTable1,
+            sparkTable1: tables.sparkTable1
+        };
+        
+        return MSQXmlExporter.generate(tuneForXML, xmlOptions);
     }
     
     /**
      * Generate filename for MSQ file
-     * Creates descriptive filename based on engine specs
      */
     generateFilename(tuneData) {
         const date = new Date().toISOString().slice(0, 10);
@@ -187,37 +122,27 @@ class MSQGenerator {
     }
 }
 
-// ===== FILE DOWNLOAD FUNCTION =====
-
 /**
  * Download MSQ file to user's computer
- * Handles browser download functionality
  */
 function downloadMSQFile(msqContent, filename) {
-    // Create blob with MSQ content
-    const blob = new Blob([msqContent], { type: 'application/octet-stream' });
+    const blob = new Blob([msqContent], { type: 'application/xml' });
     const url = URL.createObjectURL(blob);
     
-    // Create download link
     const downloadLink = document.createElement('a');
     downloadLink.href = url;
     downloadLink.download = filename + '.msq';
     downloadLink.style.display = 'none';
     
-    // Trigger download
     document.body.appendChild(downloadLink);
     downloadLink.click();
     document.body.removeChild(downloadLink);
     
-    // Clean up
     setTimeout(() => URL.revokeObjectURL(url), 100);
 }
 
-// ===== DOCUMENTATION GENERATOR =====
-
 /**
  * Generate tune documentation
- * Creates setup guide and notes for the user
  */
 function generateTuneDocumentation(tuneData, validationResults, calculatedParams) {
     const docs = [];
@@ -281,18 +206,7 @@ function generateTuneDocumentation(tuneData, validationResults, calculatedParams
     return docs.join('\n');
 }
 
-// ===== ADD NEW MSQ FEATURES HERE =====
-
-// Example: Add new table types or MSQ sections
-/*
-function generateNewTable(engineData) {
-    // Your new table generation logic
-    return tableData;
-}
-*/
-
-// Make MSQGenerator available globally
+// Make classes available globally
 window.MSQGenerator = MSQGenerator;
 
-// MSQ Template loaded successfully
-console.log('📄 MSQ template engine loaded successfully');
+console.log('📄 MS2/Extra XML MSQ Generator loaded successfully');
