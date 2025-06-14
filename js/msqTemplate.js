@@ -13,14 +13,19 @@ class MSQGenerator {
      */
     generateMSQ(tuneData, componentSpecs) {
         try {
+            console.log('Starting MSQ generation...', { tuneData, componentSpecs });
+            
             // Calculate all parameters needed for MSQ
             const calculatedParams = this.calculateAllParameters(tuneData, componentSpecs);
+            console.log('Calculated parameters:', calculatedParams);
             
             // Generate tables for XML encoding
             const tables = this.generateTables(tuneData, calculatedParams);
+            console.log('Generated tables:', tables);
             
             // Create XML MSQ file
             const msqContent = this.generateXMLMSQ(tables, tuneData);
+            console.log('Generated MSQ content length:', msqContent.length);
             
             // Generate filename
             const filename = this.generateFilename(tuneData);
@@ -70,15 +75,20 @@ class MSQGenerator {
         const veTable = generateVETable(tuneData);
         
         // Generate AFR Table (16x16) 
-        const afrTable = generateAFRTable(tuneData, tuneData.afrProfile || 'street_performance');
+        const afrTable = generateAFRTable(tuneData, tuneData.intendedUse || 'street_performance');
         
         // Generate Timing Table (16x16)
-        const timingTable = generateTimingTable(tuneData, tuneData.timingProfile || 'conservative');
+        const timingTable = generateTimingTable(tuneData, tuneData.safetyLevel || 'conservative');
+        
+        // IMPORTANT: Ensure tables are exactly 16x16
+        const veTable16x16 = this.ensureTable16x16(veTable.data, 80);
+        const afrTable16x16 = this.ensureTable16x16(afrTable.data, 14.7);
+        const timingTable16x16 = this.ensureTable16x16(timingTable.data, 20);
         
         return {
-            veTable1: veTable.data,
-            afrTable1: afrTable.data,
-            sparkTable1: timingTable.data,
+            veTable1: veTable16x16,
+            afrTable1: afrTable16x16,
+            sparkTable1: timingTable16x16,
             veRpmBins: veTable.rpmBins,
             veLoadBins: veTable.loadBins,
             afrRpmBins: afrTable.rpmBins,
@@ -89,19 +99,38 @@ class MSQGenerator {
     }
     
     /**
+     * Ensure table is exactly 16x16 dimensions
+     */
+    ensureTable16x16(tableData, defaultValue) {
+        const table16x16 = [];
+        
+        for (let row = 0; row < 16; row++) {
+            const newRow = [];
+            for (let col = 0; col < 16; col++) {
+                if (tableData && tableData[row] && typeof tableData[row][col] !== 'undefined') {
+                    newRow.push(tableData[row][col]);
+                } else {
+                    newRow.push(defaultValue);
+                }
+            }
+            table16x16.push(newRow);
+        }
+        
+        return table16x16;
+    }
+    
+    /**
      * Generate XML MSQ file using the XML exporter
      */
     generateXMLMSQ(tables, tuneData) {
-        // Use the XML exporter to create proper MS2/Extra format
-        const xmlExporter = new MSQXmlExporter();
+        // Check if MSQXmlExporter is available
+        if (typeof MSQXmlExporter === 'undefined') {
+            throw new Error('MSQXmlExporter not loaded. Please check that MSQXmlExporter_withMapping.js is included.');
+        }
         
-        const xmlOptions = {
-            signature: 'MS2Extra comms342hP',
-            revision: '20240609',
-            author: 'MS2/Extra Tune Generator',
-            comment: `Generated Baseline Tune for ${tuneData.displacement || 306}ci ${tuneData.engineFamily || 'Custom'} Engine`
-        };
+        console.log('Using MSQXmlExporter to generate XML...');
         
+        // Create the tune data object for XML export
         const tuneForXML = {
             signature: 'MS2Extra comms342hP',
             veTable1: tables.veTable1,
@@ -109,7 +138,24 @@ class MSQGenerator {
             sparkTable1: tables.sparkTable1
         };
         
-        return MSQXmlExporter.generate(tuneForXML, xmlOptions);
+        console.log('Tune data for XML:', tuneForXML);
+        
+        // XML generation options
+        const xmlOptions = {
+            signature: 'MS2Extra comms342hP',
+            revision: '20240609',
+            author: 'MS2/Extra Tune Generator',
+            comment: `Generated Baseline Tune for ${tuneData.displacement || 306}ci ${tuneData.engineFamily || 'Custom'} Engine`
+        };
+        
+        console.log('XML options:', xmlOptions);
+        
+        // Use the STATIC method MSQXmlExporter.generate()
+        const xmlContent = MSQXmlExporter.generate(tuneForXML, xmlOptions);
+        
+        console.log('Generated XML content preview:', xmlContent.substring(0, 500));
+        
+        return xmlContent;
     }
     
     /**
@@ -139,6 +185,8 @@ function downloadMSQFile(msqContent, filename) {
     document.body.removeChild(downloadLink);
     
     setTimeout(() => URL.revokeObjectURL(url), 100);
+    
+    console.log(`Downloaded MSQ file: ${filename}.msq`);
 }
 
 /**
