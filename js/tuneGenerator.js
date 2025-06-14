@@ -1,6 +1,5 @@
 // MS2/Extra Tune Generator - Main Application Logic
 // Handles UI interactions, form validation, and tune generation orchestration
-// Add new UI features and form handlers at the bottom
 
 // ===== MAIN APPLICATION CLASS =====
 
@@ -12,7 +11,7 @@ class TuneGeneratorApp {
         this.formData = {};
         this.componentSpecs = {};
         this.validationResults = { warnings: [], suggestions: [], errors: [] };
-        this.msqGenerator = new MSQGenerator();
+        this.msqGenerator = null; // Initialize as null, create later
         this.setupType = 'detailed'; // 'quick' or 'detailed'
         
         // Initialize the application
@@ -23,9 +22,30 @@ class TuneGeneratorApp {
     
     initializeApp() {
         console.log('🚀 MS2/Extra Tune Generator Initializing...');
+        
+        // Initialize MSQ generator after a short delay to ensure all scripts are loaded
+        setTimeout(() => {
+            this.initializeMSQGenerator();
+        }, 100);
+        
         this.updateProgress();
         this.attachEventListeners();
         this.loadDefaultValues();
+    }
+    
+    initializeMSQGenerator() {
+        try {
+            if (typeof MSQGenerator !== 'undefined') {
+                this.msqGenerator = new MSQGenerator();
+                console.log('✅ MSQ Generator initialized successfully');
+            } else {
+                console.error('❌ MSQGenerator class not found');
+                this.msqGenerator = null;
+            }
+        } catch (error) {
+            console.error('❌ Error initializing MSQ Generator:', error);
+            this.msqGenerator = null;
+        }
     }
     
     attachEventListeners() {
@@ -49,20 +69,25 @@ class TuneGeneratorApp {
     
     loadDefaultValues() {
         // Set intelligent defaults
-        if (document.getElementById('displacement')) document.getElementById('displacement').value = 350;
-        if (document.getElementById('cylinders')) document.getElementById('cylinders').value = 8;
-        if (document.getElementById('compression')) document.getElementById('compression').value = 9.0;
-        if (document.getElementById('fuelPressure')) document.getElementById('fuelPressure').value = 43.5;
-        if (document.getElementById('revLimit')) document.getElementById('revLimit').value = 6500;
+        setTimeout(() => {
+            if (document.getElementById('displacement')) document.getElementById('displacement').value = 350;
+            if (document.getElementById('cylinders')) document.getElementById('cylinders').value = 8;
+            if (document.getElementById('compression')) document.getElementById('compression').value = 9.0;
+            if (document.getElementById('fuelPressure')) document.getElementById('fuelPressure').value = 43.5;
+            if (document.getElementById('revLimit')) document.getElementById('revLimit').value = 6500;
+        }, 50);
     }
     
     // ===== STEP NAVIGATION =====
     
     nextStep() {
+        console.log(`🔄 nextStep() called - current step: ${this.currentStep}`);
+        
         if (this.currentStep < this.totalSteps) {
             // Validate current step before proceeding
             if (this.validateCurrentStep()) {
                 this.currentStep++;
+                console.log(`✅ Advancing to step: ${this.currentStep}`);
                 this.showStep(this.currentStep);
                 this.updateProgress();
                 this.updateNavigation();
@@ -71,13 +96,20 @@ class TuneGeneratorApp {
                 if (this.currentStep === this.totalSteps) {
                     this.prepareFinalStep();
                 }
+            } else {
+                console.log('❌ Current step validation failed');
             }
+        } else {
+            console.log('⚠️ Already at final step');
         }
     }
     
     prevStep() {
+        console.log(`🔄 prevStep() called - current step: ${this.currentStep}`);
+        
         if (this.currentStep > 1) {
             this.currentStep--;
+            console.log(`✅ Going back to step: ${this.currentStep}`);
             this.showStep(this.currentStep);
             this.updateProgress();
             this.updateNavigation();
@@ -85,6 +117,8 @@ class TuneGeneratorApp {
     }
     
     showStep(stepNumber) {
+        console.log(`📺 Showing step: ${stepNumber}`);
+        
         // Hide all steps
         document.querySelectorAll('.form-step').forEach(step => {
             step.classList.remove('active');
@@ -95,6 +129,9 @@ class TuneGeneratorApp {
         if (currentStepElement) {
             currentStepElement.classList.add('active');
             currentStepElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            console.log(`✅ Step ${stepNumber} is now visible`);
+        } else {
+            console.error(`❌ Could not find step${stepNumber} element`);
         }
         
         // Update step labels
@@ -108,6 +145,7 @@ class TuneGeneratorApp {
         if (progressFill) {
             const progressPercent = (this.currentStep / this.totalSteps) * 100;
             progressFill.style.width = `${progressPercent}%`;
+            console.log(`📊 Progress updated: ${progressPercent}%`);
         }
     }
     
@@ -125,13 +163,15 @@ class TuneGeneratorApp {
                 nextBtn.textContent = this.currentStep === this.totalSteps - 1 ? 'Review →' : 'Next →';
             }
         }
+        
+        console.log(`🧭 Navigation updated - Prev: ${this.currentStep > 1 ? 'visible' : 'hidden'}, Next: ${this.currentStep < this.totalSteps ? 'visible' : 'hidden'}`);
     }
     
     // ===== SETUP TYPE SELECTION =====
     
     selectSetupType(type) {
+        console.log(`🎯 Setup type selected: ${type}`);
         this.setupType = type;
-        console.log(`Setup type selected: ${type}`);
         
         // Show/hide detailed sections based on setup type
         const detailedSections = document.querySelectorAll('#detailedEngineSpecs');
@@ -139,8 +179,12 @@ class TuneGeneratorApp {
             section.style.display = type === 'detailed' ? 'block' : 'none';
         });
         
-        // Auto-advance to next step
-        setTimeout(() => this.nextStep(), 300);
+        // Auto-advance to next step with a longer delay
+        console.log('⏳ Auto-advancing to next step in 500ms...');
+        setTimeout(() => {
+            console.log('🚀 Auto-advance triggered');
+            this.nextStep();
+        }, 500);
     }
     
     // ===== KNOWN COMBO LOADING =====
@@ -154,6 +198,12 @@ class TuneGeneratorApp {
         if (!comboKey || comboKey === 'custom') {
             const comboInfo = document.getElementById('knownComboInfo');
             if (comboInfo) comboInfo.style.display = 'none';
+            return;
+        }
+        
+        // Check if knownCombos is available
+        if (typeof knownCombos === 'undefined') {
+            console.error('❌ knownCombos database not loaded');
             return;
         }
         
@@ -242,6 +292,12 @@ class TuneGeneratorApp {
         // Hide custom specs section
         if (customSpecs) customSpecs.style.display = 'none';
         
+        // Check if injectorDatabase is available
+        if (typeof injectorDatabase === 'undefined') {
+            console.error('❌ injectorDatabase not loaded');
+            return;
+        }
+        
         // Load injector from database
         const injectorData = injectorDatabase[injectorSelect.value];
         if (injectorData) {
@@ -280,6 +336,12 @@ class TuneGeneratorApp {
         
         if (!coilSelect.value || coilSelect.value === 'unknown') {
             if (specsDisplay) specsDisplay.innerHTML = '<p><strong>Unknown coil:</strong> Will use conservative ignition settings.</p>';
+            return;
+        }
+        
+        // Check if coilDatabase is available
+        if (typeof coilDatabase === 'undefined') {
+            console.error('❌ coilDatabase not loaded');
             return;
         }
         
@@ -329,6 +391,12 @@ class TuneGeneratorApp {
             return;
         }
         
+        // Check if widebandDatabase is available
+        if (typeof widebandDatabase === 'undefined') {
+            console.error('❌ widebandDatabase not loaded');
+            return;
+        }
+        
         const widebandData = widebandDatabase[widebandSelect.value];
         if (!widebandData) return;
         
@@ -350,11 +418,19 @@ class TuneGeneratorApp {
     
     loadPumpSpecs() {
         const pumpSelect = document.getElementById('fuelPump');
-        if (!pumpSelect || !pumpSelect.value || !fuelPumpDatabase[pumpSelect.value]) return;
+        if (!pumpSelect || !pumpSelect.value) return;
         
-        const pumpData = fuelPumpDatabase[pumpSelect.value];
-        this.componentSpecs.fuelPump = pumpData;
-        console.log('Loaded fuel pump specs:', pumpData);
+        // Check if fuelPumpDatabase is available
+        if (typeof fuelPumpDatabase === 'undefined') {
+            console.error('❌ fuelPumpDatabase not loaded');
+            return;
+        }
+        
+        if (fuelPumpDatabase[pumpSelect.value]) {
+            const pumpData = fuelPumpDatabase[pumpSelect.value];
+            this.componentSpecs.fuelPump = pumpData;
+            console.log('Loaded fuel pump specs:', pumpData);
+        }
     }
     
     // ===== INPUT CHANGE HANDLER =====
@@ -428,6 +504,9 @@ class TuneGeneratorApp {
         let isValid = true;
         
         switch (this.currentStep) {
+            case 1: // Setup selection
+                isValid = true; // Always valid, just selecting setup type
+                break;
             case 2: // Engine specs
                 isValid = this.validateEngineSpecs();
                 break;
@@ -440,8 +519,12 @@ class TuneGeneratorApp {
             case 5: // Sensors
                 isValid = this.validateSensorSystem();
                 break;
+            case 6: // Generate
+                isValid = true; // Final step
+                break;
         }
         
+        console.log(`🔍 Step ${this.currentStep} validation: ${isValid ? 'PASSED' : 'FAILED'}`);
         return isValid;
     }
     
@@ -556,6 +639,13 @@ class TuneGeneratorApp {
     
     updateAFRRecommendation() {
         const intendedUse = document.getElementById('intendedUse')?.value;
+        
+        // Check if afrProfiles is available
+        if (typeof afrProfiles === 'undefined') {
+            console.error('❌ afrProfiles not loaded');
+            return;
+        }
+        
         const afrProfile = afrProfiles[intendedUse?.replace('_', '')] || afrProfiles.street_performance;
         
         // Show AFR targets somewhere in UI if needed
@@ -565,6 +655,7 @@ class TuneGeneratorApp {
     // ===== FINAL STEP PREPARATION =====
     
     prepareFinalStep() {
+        console.log('🎯 Preparing final step...');
         this.collectAllFormData();
         this.runFinalValidation();
         this.generateTuneSummary();
@@ -584,21 +675,28 @@ class TuneGeneratorApp {
         });
         
         // Apply smart defaults for unknown values
-        const smartDefaults = calculateSmartDefaults(this.formData);
-        Object.keys(smartDefaults).forEach(key => {
-            if (!this.formData[key] || this.formData[key + 'Unknown']) {
-                this.formData[key] = smartDefaults[key];
-                this.formData[key + '_estimated'] = true;
-            }
-        });
+        if (typeof calculateSmartDefaults === 'function') {
+            const smartDefaults = calculateSmartDefaults(this.formData);
+            Object.keys(smartDefaults).forEach(key => {
+                if (!this.formData[key] || this.formData[key + 'Unknown']) {
+                    this.formData[key] = smartDefaults[key];
+                    this.formData[key + '_estimated'] = true;
+                }
+            });
+        }
         
         console.log('Final form data:', this.formData);
         console.log('Component specs:', this.componentSpecs);
     }
     
     runFinalValidation() {
-        this.validationResults = validateConfiguration(this.formData);
-        this.displayValidationResults();
+        if (typeof validateConfiguration === 'function') {
+            this.validationResults = validateConfiguration(this.formData);
+            this.displayValidationResults();
+        } else {
+            console.warn('⚠️ validateConfiguration function not available');
+            this.validationResults = { warnings: [], suggestions: [], errors: [] };
+        }
     }
     
     displayValidationResults() {
@@ -637,12 +735,16 @@ class TuneGeneratorApp {
         if (!summaryContainer) return;
         
         // Calculate preview parameters
-        const requiredFuel = calculateRequiredFuel(
-            this.formData.displacement,
-            this.formData.cylinders,
-            this.componentSpecs.injector?.size || this.formData.customInjectorSize || 34,
-            this.formData.fuelPressure
-        );
+        let requiredFuel = 'Calculating...';
+        
+        if (typeof calculateRequiredFuel === 'function') {
+            requiredFuel = calculateRequiredFuel(
+                this.formData.displacement,
+                this.formData.cylinders,
+                this.componentSpecs.injector?.size || this.formData.customInjectorSize || 34,
+                this.formData.fuelPressure
+            );
+        }
         
         summaryContainer.innerHTML = `
             <h3>📋 Tune Summary</h3>
@@ -669,102 +771,129 @@ class TuneGeneratorApp {
     
     // ===== MAIN TUNE GENERATION =====
     
-// In the TuneGeneratorApp class, update the generateTune() method:
-
-generateTune() {
-    const generateBtn = document.getElementById('generateBtn');
-    const resultsContainer = document.getElementById('generationResults');
-    
-    if (!generateBtn || !resultsContainer) return;
-    
-    // Show loading state
-    generateBtn.innerHTML = '<span class="loading"></span> Generating Tune...';
-    generateBtn.disabled = true;
-    
-    try {
-        // Ensure we have the XML exporter available
-        if (typeof MSQXmlExporter === 'undefined') {
-            throw new Error('MSQ XML Exporter not loaded. Please refresh the page.');
+    generateTune() {
+        console.log('🚀 generateTune() called');
+        
+        const generateBtn = document.getElementById('generateBtn');
+        const resultsContainer = document.getElementById('generationResults');
+        
+        if (!generateBtn || !resultsContainer) {
+            console.error('❌ Generate button or results container not found');
+            return;
         }
         
-        // Generate the MSQ file
-        const result = this.msqGenerator.generateMSQ(this.formData, this.componentSpecs);
-        
-        // Generate documentation if requested
-        let documentation = '';
-        const includeDocsCheckbox = document.getElementById('includeDocumentation');
-        if (includeDocsCheckbox?.checked) {
-            documentation = generateTuneDocumentation(this.formData, this.validationResults, result.parameters);
+        // Check if MSQ generator is available
+        if (!this.msqGenerator) {
+            console.error('❌ MSQ Generator not initialized');
+            resultsContainer.style.display = 'block';
+            resultsContainer.innerHTML = `
+                <div class="error-message">
+                    <h3>❌ Generator Not Ready</h3>
+                    <p>The MSQ generator is not properly initialized. Please refresh the page and try again.</p>
+                    <p><strong>This usually happens when:</strong></p>
+                    <ul>
+                        <li>JavaScript files failed to load</li>
+                        <li>Browser compatibility issues</li>
+                        <li>Ad blocker interference</li>
+                    </ul>
+                </div>
+            `;
+            return;
         }
         
-        // Show success message
-        resultsContainer.style.display = 'block';
-        resultsContainer.innerHTML = `
-            <div class="success-message">
-                <h3>🎉 MS2/Extra Tune Generated Successfully!</h3>
-                <p>Your baseline tune has been generated in proper MS2/Extra XML format.</p>
-                <p><strong>Signature:</strong> MS2Extra comms342hP</p>
-                <p><strong>File Format:</strong> XML (5.0)</p>
-                <div class="download-buttons">
-                    <button onclick="app.downloadMSQ('${result.filename}', \`${btoa(result.content)}\`)" class="download-btn">
-                        📥 Download ${result.filename}.msq
-                    </button>
-                    ${documentation ? `
-                    <button onclick="app.downloadDocumentation('${result.filename}', \`${btoa(documentation)}\`)" class="download-btn">
-                        📄 Download Setup Guide
-                    </button>
-                    ` : ''}
-                </div>
-                <div class="next-steps">
-                    <h4>🚀 Next Steps:</h4>
-                    <ol>
-                        <li>Open TunerStudio and load this .msq file</li>
-                        <li>Flash tune to your MS2/Extra ECU</li>
-                        <li>Set base timing to 10° BTDC at idle</li>
-                        <li>Start engine and warm up slowly</li>
-                        <li>Monitor AFR readings closely</li>
-                        <li>Begin VE table tuning</li>
-                    </ol>
-                    <p><strong>✅ COMPATIBILITY:</strong> This file is compatible with MS2/Extra 3.4.x and TunerStudio.</p>
-                    <p><strong>⚠️ SAFETY REMINDER:</strong> This is a baseline tune. Professional tuning recommended for optimal performance and safety.</p>
-                </div>
-            </div>
-        `;
+        // Show loading state
+        generateBtn.innerHTML = '<span class="loading"></span> Generating Tune...';
+        generateBtn.disabled = true;
         
-        // Auto-download files
-        setTimeout(() => {
-            this.downloadMSQ(result.filename, btoa(result.content));
-            if (documentation) {
-                setTimeout(() => {
-                    this.downloadDocumentation(result.filename, btoa(documentation));
-                }, 1000);
+        try {
+            // Ensure we have the XML exporter available
+            if (typeof MSQXmlExporter === 'undefined') {
+                throw new Error('MSQ XML Exporter not loaded. Please refresh the page.');
             }
-        }, 500);
-        
-    } catch (error) {
-        console.error('Tune generation error:', error);
-        resultsContainer.style.display = 'block';
-        resultsContainer.innerHTML = `
-            <div class="error-message">
-                <h3>❌ Generation Error</h3>
-                <p>There was an error generating your tune. Please check your inputs and try again.</p>
-                <p><strong>Error:</strong> ${error.message}</p>
-                <p><strong>Note:</strong> Make sure all required files are loaded properly.</p>
-            </div>
-        `;
-    } finally {
-        // Restore button
-        generateBtn.innerHTML = '🚀 Generate MSQ File';
-        generateBtn.disabled = false;
+            
+            console.log('✅ All components ready, generating MSQ...');
+            
+            // Generate the MSQ file
+            const result = this.msqGenerator.generateMSQ(this.formData, this.componentSpecs);
+            
+            // Generate documentation if requested
+            let documentation = '';
+            const includeDocsCheckbox = document.getElementById('includeDocumentation');
+            if (includeDocsCheckbox?.checked && typeof generateTuneDocumentation === 'function') {
+                documentation = generateTuneDocumentation(this.formData, this.validationResults, result.parameters);
+            }
+            
+            // Show success message
+            resultsContainer.style.display = 'block';
+            resultsContainer.innerHTML = `
+                <div class="success-message">
+                    <h3>🎉 MS2/Extra Tune Generated Successfully!</h3>
+                    <p>Your baseline tune has been generated in proper MS2/Extra XML format.</p>
+                    <p><strong>Signature:</strong> MS2Extra comms342hP</p>
+                    <p><strong>File Format:</strong> XML (5.0)</p>
+                    <div class="download-buttons">
+                        <button onclick="app.downloadMSQ('${result.filename}', \`${btoa(result.content)}\`)" class="download-btn">
+                            📥 Download ${result.filename}.msq
+                        </button>
+                        ${documentation ? `
+                        <button onclick="app.downloadDocumentation('${result.filename}', \`${btoa(documentation)}\`)" class="download-btn">
+                            📄 Download Setup Guide
+                        </button>
+                        ` : ''}
+                    </div>
+                    <div class="next-steps">
+                        <h4>🚀 Next Steps:</h4>
+                        <ol>
+                            <li>Open TunerStudio and load this .msq file</li>
+                            <li>Flash tune to your MS2/Extra ECU</li>
+                            <li>Set base timing to 10° BTDC at idle</li>
+                            <li>Start engine and warm up slowly</li>
+                            <li>Monitor AFR readings closely</li>
+                            <li>Begin VE table tuning</li>
+                        </ol>
+                        <p><strong>✅ COMPATIBILITY:</strong> This file is compatible with MS2/Extra 3.4.x and TunerStudio.</p>
+                        <p><strong>⚠️ SAFETY REMINDER:</strong> This is a baseline tune. Professional tuning recommended for optimal performance and safety.</p>
+                    </div>
+                </div>
+            `;
+            
+            // Auto-download files
+            setTimeout(() => {
+                this.downloadMSQ(result.filename, btoa(result.content));
+                if (documentation) {
+                    setTimeout(() => {
+                        this.downloadDocumentation(result.filename, btoa(documentation));
+                    }, 1000);
+                }
+            }, 500);
+            
+        } catch (error) {
+            console.error('Tune generation error:', error);
+            resultsContainer.style.display = 'block';
+            resultsContainer.innerHTML = `
+                <div class="error-message">
+                    <h3>❌ Generation Error</h3>
+                    <p>There was an error generating your tune. Please check your inputs and try again.</p>
+                    <p><strong>Error:</strong> ${error.message}</p>
+                    <p><strong>Note:</strong> Make sure all required files are loaded properly.</p>
+                </div>
+            `;
+        } finally {
+            // Restore button
+            generateBtn.innerHTML = '🚀 Generate MSQ File';
+            generateBtn.disabled = false;
+        }
     }
-}
-
     
     // ===== FILE DOWNLOAD FUNCTIONS =====
     
     downloadMSQ(filename, base64Content) {
         const content = atob(base64Content);
-        downloadMSQFile(content, filename);
+        if (typeof downloadMSQFile === 'function') {
+            downloadMSQFile(content, filename);
+        } else {
+            console.error('❌ downloadMSQFile function not available');
+        }
     }
     
     downloadDocumentation(filename, base64Content) {
@@ -821,18 +950,22 @@ generateTune() {
 
 // These functions allow HTML elements to call class methods
 function selectSetupType(type) {
+    console.log(`🎯 Global selectSetupType called: ${type}`);
     if (window.app) window.app.selectSetupType(type);
 }
 
 function nextStep() {
+    console.log('🔄 Global nextStep called');
     if (window.app) window.app.nextStep();
 }
 
 function prevStep() {
+    console.log('🔄 Global prevStep called');
     if (window.app) window.app.prevStep();
 }
 
 function generateTune() {
+    console.log('🚀 Global generateTune called');
     if (window.app) window.app.generateTune();
 }
 
@@ -886,23 +1019,6 @@ window.addEventListener('error', function(event) {
     console.error('Application error:', event.error);
     alert('An unexpected error occurred. Please refresh the page and try again.');
 });
-
-// ===== ADD NEW FEATURES HERE =====
-
-// Example: Add new validation functions
-/*
-function validateNewFeature(formData) {
-    // Your validation logic here
-    return { isValid: true, message: '' };
-}
-*/
-
-// Example: Add new component loading functions
-/*
-TuneGeneratorApp.prototype.loadNewComponentSpecs = function() {
-    // Your component loading logic here
-};
-*/
 
 // Application ready
 console.log('🚀 MS2/Extra Tune Generator v1.0 - Ready to create professional tunes!');
